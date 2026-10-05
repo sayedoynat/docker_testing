@@ -1,0 +1,12 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+
+before_install:
+  - docker build -t sayedoynat/try-docker -f dockerfile.dev .
+
+script:
+  - docker run -e CI=true sayedoynat/try-docker npm run test
