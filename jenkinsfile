@@ -1,0 +1,18 @@
+pipline{
+    agent {
+        label 'docker'
+    }
+    stages{
+        stage('Build docker Image'){
+            steps {
+                sh 'docker build -t sayedoynat/jenkins-image -f dockerfile.dev .'
+            }
+        }
+        stage('Run Tests'  ){
+            steps {
+                script {
+                    sh 'docker run -e CI=true sayedoynat/jenkins-image npm run test'
+            }
+        }
+    }
+}
