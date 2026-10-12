@@ -33,5 +33,5 @@ jobs:
           application_name: test
           environment_name: Test-env
           version_label: ${{ github.sha }}
-          region: us-west-1
+          region: eu-north-1
           deployment_package: deploy.zip
