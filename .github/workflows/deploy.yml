@@ -23,7 +23,13 @@ jobs:
         run: docker run -e CI=true sayedoynat/docker-react npm run test
 
       - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
+        run: |
+          mkdir deploy
+          cp package*.json deploy/
+          cp -r public src deploy/
+          cp Dockerfile deploy/
+          cd deploy
+          zip -r ../deploy.zip .
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
@@ -31,7 +37,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: "sayed11"
-          environment_name: "Sayed11-env"
+          environment_name: "Sayed11-env "
           version_label: ${{ github.sha }}
           region: eu-north-1
           deployment_package: deploy.zip
