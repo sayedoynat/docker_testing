@@ -1,25 +1,26 @@
-name: Deploy React
+name: deploy react
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t sayedoynat/react-app -f Dockerfile.dev .
+        run: docker build -t sayedoynat/docker-react -f Dockerfile.dev .
 
       - name: Run tests
-        run: docker run -e CI=true sayedoynat/react-app npm run test 
+        run: docker run -e CI=true sayedoynat/docker-react npm run test
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
@@ -29,8 +30,44 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: sayed11
-          environment_name: Sayed11-env
+          application_name: "sayed11"
+          environment_name: "Sayed11-env"
           version_label: ${{ github.sha }}
           region: eu-north-1
           deployment_package: deploy.zip
+# name: Deploy React
+
+# on:
+#   push:
+#     branches:
+#       - master
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+#       - name: Build Docker image
+#         run: docker build -t sayedoynat/react-app -f Dockerfile.dev .
+
+#       - name: Run tests
+#         run: docker run -e CI=true sayedoynat/react-app npm run test 
+
+#       - name: Generate deployment package
+#         run: zip -r deploy.zip . -x '*.git*'
+
+#       - name: Deploy to Elastic Beanstalk
+#         uses: einaregilsson/beanstalk-deploy@v22
+#         with:
+#           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           application_name: sayed11
+#           environment_name: Sayed11-env
+#           version_label: ${{ github.sha }}
+#           region: eu-north-1
+#           deployment_package: deploy.zip
