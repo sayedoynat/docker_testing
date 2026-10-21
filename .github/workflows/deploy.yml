@@ -13,67 +13,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - run: docker build -t sayedoynat/docker-react -f Dockerfile.dev .
+      - run: docker run -e CI=true sayedoynat/docker-react npm run test
 
-      - name: Build Docker image
-        run: docker build -t sayedoynat/docker-react -f Dockerfile.dev .
+      - run: docker build -t sayedoynat/multi-client ./microservices/client 
+      - run: docker build -t sayedoynat/multi-nginx ./microservices/nginx
+      - run: docker build -t sayedoynat/multi-server ./microservices/server
+      - run: docker build -t sayedoynat/multi-worker ./microservices/worker
+      - run: docker push sayedoynat/multi-client
+      - run: docker push sayedoynat/multi-nginx
+      - run: docker push sayedoynat/multi-server 
+      - run: docker push sayedoynat/multi-worker
 
-      - name: Run tests
-        run: docker run -e CI=true sayedoynat/docker-react npm run test
 
-      - name: Generate deployment package
-        run: |
-          mkdir deploy
-          cp package*.json deploy/
-          cp -r public src deploy/
-          cp Dockerfile deploy/
-          cd deploy
-          zip -r ../deploy.zip .
+      
+      # - name: Generate deployment package
+      #   run: |
+      #     mkdir deploy
+      #     cp package*.json deploy/
+      #     cp -r public src deploy/
+      #     cp Dockerfile deploy/
+      #     cd deploy
+      #     zip -r ../deploy.zip .
 
-      - name: Deploy to Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v22
-        with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: "sayed11"
-          environment_name: "Sayed11-env "
-          version_label: ${{ github.sha }}
-          region: eu-north-1
-          deployment_package: deploy.zip
-# name: Deploy React
-
-# on:
-#   push:
-#     branches:
-#       - master
-
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-
-#       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
-#       - name: Build Docker image
-#         run: docker build -t sayedoynat/react-app -f Dockerfile.dev .
-
-#       - name: Run tests
-#         run: docker run -e CI=true sayedoynat/react-app npm run test 
-
-#       - name: Generate deployment package
-#         run: zip -r deploy.zip . -x '*.git*'
-
-#       - name: Deploy to Elastic Beanstalk
-#         uses: einaregilsson/beanstalk-deploy@v22
-#         with:
-#           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           application_name: sayed11
-#           environment_name: Sayed11-env
-#           version_label: ${{ github.sha }}
-#           region: eu-north-1
-#           deployment_package: deploy.zip
+      # - name: Deploy to Elastic Beanstalk
+      #   uses: einaregilsson/beanstalk-deploy@v22
+      #   with:
+      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     application_name: "sayed11"
+      #     environment_name: "Sayed11-env "
+      #     version_label: ${{ github.sha }}
+      #     region: eu-north-1
+      #     deployment_package: deploy.zip
